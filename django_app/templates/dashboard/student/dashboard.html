@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block title %}My Dashboard — UniEvents{% endblock %}
+{% block page_title %}My Dashboard{% endblock %}
+{% block topbar_actions %}
+  <a href="{% url 'event_list' %}" class="btn btn-primary btn-sm">◇ Browse Events</a>
+  <a href="{% url 'club_list' %}" class="btn btn-ghost btn-sm">◈ Browse Clubs</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:860px){.dash-grid{grid-template-columns:1fr}}
+</style>
+{% endblock %}
+
+{% block app_content %}
+
+<!-- Welcome Banner -->
+<div class="card fade-up" style="margin-bottom:24px;background:linear-gradient(135deg,var(--a-bg) 0%,var(--surface) 100%);border-color:var(--a-border)">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+    <div>
+      <h2 style="font-size:1.375rem;font-weight:800;margin-bottom:4px">
+        Hello, {{ request.user.get_full_name|default:request.user.username }} 
+      </h2>
+      <p style="color:var(--txt2);font-size:0.9rem">
+        {% if my_clubs %}Member of {{ my_clubs|length }} club{{ my_clubs|length|pluralize }}
+        · {% endif %}{{ my_registrations|length }} event{{ my_registrations|length|pluralize }} registered
+      </p>
+    </div>
+    <a href="{% url 'profile_edit' %}" class="btn btn-ghost btn-sm">✏️ Edit Profile</a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="grid-4 fade-up" style="margin-bottom:24px">
+  <div class="stat-card">
+    <div class="stat-glow" style="background:#6366F1"></div>
+    <div class="stat-icon">◈</div>
+    <div class="stat-value" style="color:var(--a2)">{{ my_clubs|length }}</div>
+    <div class="stat-label">My Clubs</div>
+    {% if pending_clubs %}<div class="stat-sub" style="color:var(--yellow)">{{ pending_clubs|length }} pending</div>{% endif %}
+  </div>
+  <div class="stat-card">
+    <div class="stat-glow" style="background:#3B82F6"></div>
+    <div class="stat-icon">◇</div>
+    <div class="stat-value" style="color:var(--blue)">{{ my_registrations|length }}</div>
+    <div class="stat-label">Registered Events</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-glow" style="background:#10B981"></div>
+    <div class="stat-icon"></div>
+    <div class="stat-value" style="color:var(--green)">{{ upcoming_registrations|length }}</div>
+    <div class="stat-label">Upcoming</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-glow" style="background:#F59E0B"></div>
+    <div class="stat-icon"></div>
+    <div class="stat-value" style="color:var(--yellow)">{{ announcements|length }}</div>
+    <div class="stat-label">Announcements</div>
+  </div>
+</div>
+
+<div class="dash-grid fade-up-2">
+
+  <!-- My Clubs -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div style="font-size:0.875rem;font-weight:700;color:var(--txt)">◈ My Clubs</div>
+      <a href="{% url 'club_list' %}" class="btn btn-ghost btn-sm">Browse +</a>
+    </div>
+    {% for m in my_clubs %}
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);{% if forloop.last %}border-bottom:none{% endif %}">
+      <div style="width:36px;height:36px;border-radius:9px;background:var(--a-bg);border:1px solid var(--a-border);display:flex;align-items:center;justify-content:center;font-size:0.95rem;font-weight:800;color:var(--a2);flex-shrink:0;overflow:hidden">
+        {% if m.club.logo %}<img src="{{ m.club.logo.url }}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">{% else %}{{ m.club.name|slice:":1" }}{% endif %}
+      </div>
+      <div style="flex:1;min-width:0">
+        <a href="{% url 'club_detail' m.club.slug %}" style="font-size:0.875rem;font-weight:600;color:var(--txt)">{{ m.club.name }}</a>
+        <div style="font-size:0.75rem;color:var(--txt3)">{{ m.get_role_display }}</div>
+      </div>
+      <span class="badge badge-green">Active</span>
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:28px 0;color:var(--txt3)">
+      <div style="font-size:2rem;margin-bottom:8px">◈</div>
+      <div style="font-size:0.875rem;margin-bottom:10px">Not in any clubs yet</div>
+      <a href="{% url 'club_list' %}" class="btn btn-primary btn-sm">Find a Club →</a>
+    </div>
+    {% endfor %}
+    {% if pending_clubs %}
+    <div style="margin-top:12px;padding:12px;background:var(--surface2);border-radius:var(--r-sm)">
+      <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--txt3);margin-bottom:8px"> Pending Requests</div>
+      {% for m in pending_clubs %}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0">
+        <span style="font-size:0.8125rem;color:var(--txt2)">{{ m.club.name }}</span>
+        <span class="badge badge-yellow">Pending</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Registered Events -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div style="font-size:0.875rem;font-weight:700;color:var(--txt)">◇ My Registered Events</div>
+      <a href="{% url 'event_list' %}" class="btn btn-ghost btn-sm">Browse +</a>
+    </div>
+    {% for reg in my_registrations|slice:":6" %}
+    <div style="padding:10px 0;border-bottom:1px solid var(--border);{% if forloop.last %}border-bottom:none{% endif %}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="flex:1;min-width:0">
+          <a href="{% url 'event_detail' reg.event.slug %}" style="font-size:0.875rem;font-weight:600;color:var(--txt)">{{ reg.event.title|truncatechars:32 }}</a>
+          <div style="font-size:0.75rem;color:var(--txt3);margin-top:3px">
+             {{ reg.event.start_date|date:"M d, Y · g:i A" }}
+          </div>
+          {% if reg.event.venue %}<div style="font-size:0.75rem;color:var(--txt3)"> {{ reg.event.venue }}</div>{% endif %}
+        </div>
+        <span class="badge {% if reg.status == 'registered' %}badge-green{% elif reg.status == 'attended' %}badge-blue{% else %}badge-gray{% endif %}">
+          {{ reg.get_status_display }}
+        </span>
+      </div>
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:28px 0;color:var(--txt3)">
+      <div style="font-size:2rem;margin-bottom:8px">◇</div>
+      <div style="font-size:0.875rem;margin-bottom:10px">No registrations yet</div>
+      <a href="{% url 'event_list' %}" class="btn btn-primary btn-sm">Browse Events →</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% if announcements %}
+<div class="card fade-up-3" style="margin-top:22px">
+  <div style="font-size:0.875rem;font-weight:700;color:var(--txt);margin-bottom:18px"> Recent Announcements</div>
+  {% for ann in announcements|slice:":5" %}
+  <div style="padding:13px 0;border-bottom:1px solid var(--border);{% if forloop.last %}border-bottom:none{% endif %}">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+      <span style="font-size:0.875rem;font-weight:600;color:var(--txt)">{{ ann.title }}</span>
+      <span class="badge {% if ann.announcement_type == 'cancellation' %}badge-red{% elif ann.announcement_type == 'venue_change' %}badge-yellow{% elif ann.announcement_type == 'time_change' %}badge-blue{% else %}badge-accent{% endif %}">{{ ann.get_announcement_type_display }}</span>
+    </div>
+    <div style="font-size:0.8125rem;color:var(--txt2)">{{ ann.message|truncatewords:20 }}</div>
+    <div style="font-size:0.75rem;color:var(--txt3);margin-top:4px">{{ ann.event.title }} · {{ ann.created_at|date:"M d, Y" }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if available_events %}
+<div class="card fade-up-3" style="margin-top:22px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+    <div style="font-size:0.875rem;font-weight:700;color:var(--txt)">⊕ Upcoming Events You Haven't Registered</div>
+    <a href="{% url 'event_list' %}" class="btn btn-ghost btn-sm">See all →</a>
+  </div>
+  {% for event in available_events|slice:":4" %}
+  <div style="padding:12px 0;border-bottom:1px solid var(--border);{% if forloop.last %}border-bottom:none{% endif %};display:flex;justify-content:space-between;align-items:center;gap:12px">
+    <div>
+      <div style="font-size:0.875rem;font-weight:600;color:var(--txt)">{{ event.title|truncatechars:40 }}</div>
+      <div style="font-size:0.75rem;color:var(--txt3);margin-top:2px"> {{ event.start_date|date:"M d" }} · ◈ {{ event.club.name }}</div>
+    </div>
+    <a href="{% url 'event_detail' event.slug %}" class="btn btn-ghost btn-sm">View →</a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

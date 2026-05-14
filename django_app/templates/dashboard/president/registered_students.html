@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Registered Students{% endblock %}
+{% block page_title %}Registered Students — {{ event.title }}{% endblock %}
+{% block app_content %}
+<div style="margin-bottom:16px;">
+  <a href="{% url 'president_event_list' %}" class="btn btn-ghost btn-sm">← Back to Events</a>
+</div>
+<div class="card fade-up">
+  <div style="margin-bottom:16px;">
+    <span style="font-size:0.8125rem;color:var(--txt3);"> {{ event.start_date|date:"M d, Y" }} ·  {{ event.venue }} · <strong style="color:var(--a2);">{{ total }} registered</strong></span>
+  </div>
+  <table class="data-table">
+    <thead><tr><th>#</th><th>Name</th><th>Student ID</th><th>Email</th><th>Phone</th><th>Dept</th><th>Intake</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for reg in registrations %}
+      <tr>
+        <td style="color:var(--txt3);">{{ forloop.counter }}</td>
+        <td style="font-weight:600;color:var(--txt);">{{ reg.user.get_full_name|default:reg.user.username }}</td>
+        <td style="font-family:monospace;font-size:0.82rem;">{{ reg.user.student_id|default:"—" }}</td>
+        <td style="font-size:0.82rem;">{{ reg.user.email|default:"—" }}</td>
+        <td style="font-size:0.82rem;">{{ reg.user.phone|default:"—" }}</td>
+        <td>{{ reg.user.department|default:"—" }}</td>
+        <td>{{ reg.user.intake|default:"—" }}</td>
+        <td><span class="badge {% if reg.status == 'registered' %}badge-green{% else %}badge-gray{% endif %}">{{ reg.get_status_display }}</span></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" style="text-align:center;color:var(--txt3);padding:32px 0;">No registrations yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

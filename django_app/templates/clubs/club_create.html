@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Create Club — UniEvents{% endblock %}
+
+{% block extra_css %}
+<style>
+.create-page { max-width: 700px; margin: 0 auto; padding: 0 0 48px; }
+.section-divider {
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--txt3);
+  margin: 24px 0 16px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media(max-width:580px){ .row-2 { grid-template-columns:1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-page">
+  <a href="{% url 'club_list' %}" style="display:inline-flex;align-items:center;gap:6px;font-size:0.875rem;color:var(--txt3);margin-bottom:24px;">← Back to Clubs</a>
+
+  <div style="margin-bottom:28px;">
+    <h1 style="font-size:1.625rem;font-weight:800;margin-bottom:4px;">Create a New Club</h1>
+    <p style="color:var(--txt2);font-size:0.9rem;">Submit your club proposal. An admin will review and approve it.</p>
+  </div>
+
+  <div class="card fade-up">
+    <form method="post" enctype="multipart/form-data" autocomplete="off">
+      {% csrf_token %}
+
+      <div class="section-divider">Basic Information</div>
+      <div class="form-group">
+        <label>Club Name <span style="color:var(--red)">*</span></label>
+        <input type="text" name="name" placeholder="e.g. Programming Club, Debate Society" required
+          value="{{ form.name.value|default:'' }}">
+        {% if form.name.errors %}<div class="form-error">{{ form.name.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select name="category">
+          <option value="">-- Select Category --</option>
+          {% for cat in form.category.field.queryset %}
+          <option value="{{ cat.id }}" {% if form.category.value|stringformat:"s" == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Short Description <span style="color:var(--red)">*</span></label>
+        <input type="text" name="short_description" placeholder="A brief one-liner about your club (max 300 chars)" maxlength="300"
+          value="{{ form.short_description.value|default:'' }}">
+        {% if form.short_description.errors %}<div class="form-error">{{ form.short_description.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label>Full Description <span style="color:var(--red)">*</span></label>
+        <textarea name="description" rows="5" placeholder="Describe your club's mission, activities, and goals..." required>{{ form.description.value|default:'' }}</textarea>
+        {% if form.description.errors %}<div class="form-error">{{ form.description.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="section-divider">Media</div>
+      <div class="row-2">
+        <div class="form-group">
+          <label>Club Logo</label>
+          <input type="file" name="logo" accept="image/*" style="font-size:0.8rem;">
+          <div class="form-hint">Recommended: 200×200px square image</div>
+        </div>
+        <div class="form-group">
+          <label>Banner Image</label>
+          <input type="file" name="banner" accept="image/*" style="font-size:0.8rem;">
+          <div class="form-hint">Recommended: 1200×400px wide banner</div>
+        </div>
+      </div>
+
+      <div class="section-divider">Contact & Social</div>
+      <div class="row-2">
+        <div class="form-group">
+          <label>Contact Email</label>
+          <input type="email" name="email" placeholder="club@example.com" value="{{ form.email.value|default:'' }}">
+        </div>
+        <div class="form-group">
+          <label>Website</label>
+          <input type="url" name="website" placeholder="https://..." value="{{ form.website.value|default:'' }}">
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="form-group">
+          <label>Facebook</label>
+          <input type="url" name="social_facebook" placeholder="https://facebook.com/..." value="{{ form.social_facebook.value|default:'' }}">
+        </div>
+        <div class="form-group">
+          <label>Instagram</label>
+          <input type="url" name="social_instagram" placeholder="https://instagram.com/..." value="{{ form.social_instagram.value|default:'' }}">
+        </div>
+      </div>
+
+      {% if form.non_field_errors %}
+      <div class="message error" style="margin-bottom:14px;">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+        <a href="{% url 'club_list' %}" class="btn btn-ghost">Cancel</a>
+        <button type="submit" class="btn btn-primary">◈ Submit Club →</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

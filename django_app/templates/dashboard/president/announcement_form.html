@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Post Announcement{% endblock %}
+{% block page_title %}Post Announcement{% endblock %}
+
+{% block app_content %}
+<div style="max-width:600px;margin:0 auto;">
+  <div style="margin-bottom:16px;">
+    <a href="{% url 'president_event_list' %}" class="btn btn-ghost btn-sm">← Back to Events</a>
+  </div>
+
+  <!-- Event info banner -->
+  <div class="card" style="margin-bottom:16px;background:var(--a-bg);border-color:rgba(124,110,248,0.3);">
+    <div style="font-size:0.72rem;color:var(--a2);font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">Posting announcement for</div>
+    <div style="font-weight:700;color:var(--txt);font-size:0.9375rem;">{{ event.title }}</div>
+    <div style="font-size:0.8rem;color:var(--txt3);margin-top:3px;"> {{ event.start_date|date:"M d, Y" }} ·  {{ event.venue }}</div>
+  </div>
+
+  <div class="card fade-up">
+    <h3 style="font-size:1rem;font-weight:800;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);"> New Announcement</h3>
+    <form method="post" autocomplete="off">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label>Announcement Type <span style="color:var(--red)">*</span></label>
+        <select name="announcement_type" required>
+          {% for val, label in announcement_types %}
+          <option value="{{ val }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+        <div class="form-hint">Choose "Event Cancelled" if you're cancelling this event.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Title <span style="color:var(--red)">*</span></label>
+        <input type="text" name="title" placeholder="Brief headline for this announcement" required maxlength="200">
+      </div>
+
+      <div class="form-group">
+        <label>Message <span style="color:var(--red)">*</span></label>
+        <textarea name="message" rows="5" placeholder="Write the details of your announcement here..." required></textarea>
+      </div>
+
+      <div style="background:var(--yellow-bg);border:1px solid rgba(251,191,36,0.3);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:18px;font-size:0.8125rem;color:var(--yellow);">
+        !️ All registered students will see this announcement on their dashboard.
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="btn btn-primary"> Post Announcement</button>
+        <a href="{% url 'president_event_list' %}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

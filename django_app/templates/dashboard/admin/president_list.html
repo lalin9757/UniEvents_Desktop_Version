@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Presidents — Admin{% endblock %}
+{% block page_title %}Presidents{% endblock %}
+{% block topbar_actions %}
+  <a href="{% url 'admin_president_create' %}" class="btn btn-primary btn-sm">+ New President</a>
+{% endblock %}
+
+{% block app_content %}
+<div class="card fade-up" style="padding:0;overflow:hidden">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Account</th>
+        <th>Department</th>
+        <th>Managed Club(s)</th>
+        <th>Phone</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for president in presidents %}
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:34px;height:34px;border-radius:50%;background:var(--a-bg);border:1px solid var(--a-border);display:flex;align-items:center;justify-content:center;font-size:0.875rem;font-weight:700;color:var(--a2);flex-shrink:0;overflow:hidden">
+              {% if president.profile_picture %}<img src="{{ president.profile_picture.url }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+              {% else %}{{ president.username|slice:":1"|upper }}{% endif %}
+            </div>
+            <div>
+              <div style="font-weight:600;color:var(--txt);font-size:0.875rem">
+                {{ president.get_full_name|default:president.username }}
+                {% if president.username == 'superadmin' %}<span class="badge badge-purple" style="margin-left:4px">Super</span>{% endif %}
+              </div>
+              <div style="font-size:0.75rem;color:var(--txt3)">@{{ president.username }} · {{ president.email }}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-size:0.875rem;color:var(--txt2)">{{ president.department|default:"—" }}</td>
+        <td>
+          {% for club in president.president_of.all %}
+            <span class="badge badge-accent" style="margin-right:4px;margin-bottom:3px">{{ club.name }}</span>
+          {% empty %}
+            <span style="color:var(--txt3);font-size:0.8rem">No club assigned</span>
+          {% endfor %}
+        </td>
+        <td style="font-size:0.8125rem;color:var(--txt2)">{{ president.phone|default:"—" }}</td>
+        <td>
+          {% if president.username != 'superadmin' %}
+          <a href="{% url 'admin_president_delete' president.id %}" class="btn btn-danger btn-sm" style="padding:5px 11px">✕ Delete</a>
+          {% else %}
+          <span style="font-size:0.75rem;color:var(--txt3)">Protected</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" style="text-align:center;padding:40px 0;color:var(--txt3)">
+          No president accounts yet. <a href="{% url 'admin_president_create' %}" style="color:var(--a2)">Create one →</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

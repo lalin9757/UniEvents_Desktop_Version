@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Delete Request{% endblock %}
+{% block page_title %}Event Delete Request{% endblock %}
+{% block app_content %}
+<div style="max-width:540px;margin:0 auto;">
+  <div style="margin-bottom:16px;">
+    <a href="{% url 'president_event_list' %}" class="btn btn-ghost btn-sm">← Back to Events</a>
+  </div>
+  <div class="card fade-up" style="border-color:rgba(248,113,113,0.3);margin-bottom:16px;">
+    <div style="font-size:1.5rem;margin-bottom:10px;">!️</div>
+    <h3 style="font-size:1rem;font-weight:700;color:var(--red);margin-bottom:6px;">Event Delete Request</h3>
+    <p style="color:var(--txt2);font-size:0.875rem;line-height:1.6;">You are requesting to permanently delete this event. If the admin approves, the event and all its registration data will be removed and cannot be recovered.</p>
+  </div>
+  <div class="card fade-up" style="margin-bottom:16px;">
+    <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--txt3);margin-bottom:10px;">Event Details</div>
+    <div style="font-size:1rem;font-weight:700;color:var(--txt);margin-bottom:6px;">{{ event.title }}</div>
+    <div style="font-size:0.8125rem;color:var(--txt3);display:flex;flex-direction:column;gap:4px;">
+      <span> {{ event.start_date|date:"l, F j, Y · g:i A" }}</span>
+      <span> {{ event.venue }}</span>
+      <span>⊛ {{ event.registration_count }} registrations</span>
+    </div>
+  </div>
+  <div class="card fade-up">
+    <h3 style="font-size:1rem;font-weight:800;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);">✕ Delete Request Form</h3>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>Reason for deletion <span style="color:var(--red)">*</span></label>
+        <textarea name="reason" placeholder="Example: The venue is no longer available so the event must be cancelled. / This is a duplicate entry..." required style="min-height:120px;border-color:rgba(248,113,113,0.3);"></textarea>
+        <div class="form-hint">This reason will be reviewed by the admin before the event is deleted.</div>
+      </div>
+      <button type="submit" class="btn btn-danger" style="width:100%;justify-content:center;padding:11px;" onclick="return confirm('Are you sure? If the admin approves, this event will be permanently deleted.')">✕ Send Delete Request to Admin</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

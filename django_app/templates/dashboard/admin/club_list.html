@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Clubs — Admin{% endblock %}
+{% block page_title %}All Clubs{% endblock %}
+{% block topbar_actions %}
+  <a href="{% url 'admin_club_create' %}" class="btn btn-primary btn-sm">+ New Club</a>
+{% endblock %}
+
+{% block app_content %}
+<!-- Filter Bar -->
+<form method="get" class="filter-bar fade-up">
+  <input type="text" name="search" placeholder="⊙ Search clubs..." value="{{ search|default:'' }}">
+  <select name="status" class="filter-select" onchange="this.form.submit()">
+    <option value="">All Status</option>
+    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>✅ Active</option>
+    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>⏸ Inactive</option>
+    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}> Pending</option>
+  </select>
+  <button type="submit" class="btn btn-ghost btn-sm">Search</button>
+  {% if search or status_filter %}
+  <a href="{% url 'admin_club_list' %}" class="btn btn-ghost btn-sm">✕ Clear</a>
+  {% endif %}
+  <span style="margin-left:auto;font-size:0.8125rem;color:var(--txt3)">{{ clubs|length }} club{{ clubs|length|pluralize }}</span>
+</form>
+
+<div class="card fade-up-2" style="padding:0;overflow:hidden">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Club</th>
+        <th>Category</th>
+        <th>President</th>
+        <th>Members</th>
+        <th>Status</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for club in clubs %}
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:34px;height:34px;border-radius:9px;background:var(--a-bg);border:1px solid var(--a-border);display:flex;align-items:center;justify-content:center;font-size:0.875rem;font-weight:700;color:var(--a2);flex-shrink:0;overflow:hidden">
+              {% if club.logo %}<img src="{{ club.logo.url }}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">
+              {% else %}{{ club.name|slice:":1"|upper }}{% endif %}
+            </div>
+            <div>
+              <a href="{% url 'club_detail' club.slug %}" style="font-weight:600;color:var(--txt);font-size:0.875rem">{{ club.name }}</a>
+              {% if club.short_description %}
+              <div style="font-size:0.75rem;color:var(--txt3);margin-top:1px">{{ club.short_description|truncatechars:35 }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </td>
+        <td>
+          {% if club.category %}<span class="badge badge-accent">{{ club.category.name }}</span>
+          {% else %}<span style="color:var(--txt3)">—</span>{% endif %}
+        </td>
+        <td>
+          {% if club.president %}
+            <div style="font-size:0.875rem;font-weight:500;color:var(--txt)">{{ club.president.get_full_name|default:club.president.username }}</div>
+            <div style="font-size:0.75rem;color:var(--txt3)">{{ club.president.email }}</div>
+          {% else %}<span style="color:var(--red);font-size:0.8rem">! No president</span>{% endif %}
+        </td>
+        <td style="font-weight:600;color:var(--txt)">{{ club.member_count }}</td>
+        <td>
+          <span class="badge {% if club.status == 'active' %}badge-green{% elif club.status == 'pending' %}badge-yellow{% else %}badge-gray{% endif %}">
+            {{ club.get_status_display }}
+          </span>
+        </td>
+        <td style="font-size:0.8rem;color:var(--txt3)">{{ club.created_at|date:"M d, Y" }}</td>
+        <td>
+          <div style="display:flex;gap:6px">
+            <a href="{% url 'admin_club_edit' club.id %}" class="btn btn-ghost btn-sm" style="padding:5px 11px">✏️</a>
+            <a href="{% url 'admin_club_delete' club.id %}" class="btn btn-danger btn-sm" style="padding:5px 11px">✕</a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" style="text-align:center;padding:40px 0;color:var(--txt3)">
+          <div style="font-size:2rem;margin-bottom:8px">◈</div>
+          No clubs found. <a href="{% url 'admin_club_create' %}" style="color:var(--a2)">Create the first one →</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

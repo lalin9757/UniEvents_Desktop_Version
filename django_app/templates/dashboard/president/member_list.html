@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Members{% endblock %}
+{% block page_title %}Club Members{% endblock %}
+{% block topbar_actions %}
+  <span style="font-size:0.8125rem;color:var(--txt3);">{{ club.name }} — {{ members|length }} members</span>
+{% endblock %}
+
+{% block app_content %}
+<div class="card fade-up">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Member</th>
+        <th>Student ID</th>
+        <th>Dept / Intake</th>
+        <th>Role</th>
+        <th>Joined</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for member in members %}
+      <tr>
+        <td style="color:var(--txt3);">{{ forloop.counter }}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--a-bg);display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;color:var(--a2);flex-shrink:0;">{{ member.user.username|slice:":1"|upper }}</div>
+            <div>
+              <div style="font-weight:600;color:var(--txt);">{{ member.user.get_full_name|default:member.user.username }}</div>
+              <div style="font-size:0.72rem;color:var(--txt3);">{{ member.user.email }}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-family:monospace;font-size:0.82rem;color:var(--txt2);">{{ member.user.student_id|default:"—" }}</td>
+        <td style="font-size:0.8125rem;">
+          {{ member.user.department|default:"—" }}
+          {% if member.user.intake %}<br><span style="color:var(--txt3);font-size:0.75rem;">Intake {{ member.user.intake }}</span>{% endif %}
+        </td>
+        <td>
+          {% if member.role == 'president' %}
+          <span class="badge badge-accent">✦ President</span>
+          {% else %}
+          <form method="post" style="display:flex;align-items:center;gap:6px;">
+            {% csrf_token %}
+            <input type="hidden" name="member_id" value="{{ member.id }}">
+            <input type="hidden" name="action" value="change_role">
+            <select name="new_role" style="padding:4px 8px;font-size:0.78rem;border-radius:var(--r-xs);border:1px solid var(--border);background:var(--surface2);color:var(--txt);width:auto;">
+              {% for r_val, r_label in role_choices %}
+              {% if r_val != 'president' %}
+              <option value="{{ r_val }}" {% if member.role == r_val %}selected{% endif %}>{{ r_label }}</option>
+              {% endif %}
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-sm btn-ghost">Save</button>
+          </form>
+          {% endif %}
+        </td>
+        <td style="color:var(--txt3);font-size:0.8125rem;">{{ member.joined_date|date:"M d, Y" }}</td>
+        <td>
+          {% if member.role != 'president' %}
+          <form method="post" onsubmit="return confirm('Remove {{ member.user.username }} from {{ club.name }}?');">
+            {% csrf_token %}
+            <input type="hidden" name="member_id" value="{{ member.id }}">
+            <input type="hidden" name="action" value="remove">
+            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+          </form>
+          {% else %}
+          <span style="font-size:0.72rem;color:var(--txt3);">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" style="text-align:center;color:var(--txt3);padding:32px 0;">No members yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

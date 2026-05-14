@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block title %}{{ club.name }} — UniEvents{% endblock %}
+{% block extra_css %}
+<style>
+.club-hero {
+  position:relative; overflow:hidden;
+  background:linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+  border:1px solid var(--border); border-radius:var(--r);
+  margin-bottom:24px; min-height:200px;
+}
+.club-hero-banner {
+  width:100%; height:180px; object-fit:cover;
+  display:block; border-radius:var(--r) var(--r) 0 0;
+}
+.club-hero-banner-placeholder {
+  height:160px;
+  background:linear-gradient(135deg, var(--bg2) 0%, var(--surface2) 100%);
+  position:relative; overflow:hidden;
+}
+.club-hero-banner-glow {
+  position:absolute; width:300px; height:300px; border-radius:50%;
+  background:var(--a); filter:blur(100px); opacity:0.08;
+  top:-100px; right:-50px;
+}
+.club-hero-body { padding:20px 28px 24px; }
+.club-hero-row { display:flex; align-items:flex-end; gap:18px; margin-bottom:16px; margin-top:-44px; position:relative; }
+.club-logo-lg {
+  width:72px; height:72px; border-radius:14px; flex-shrink:0;
+  background:var(--a-bg); border:3px solid var(--bg);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.875rem; font-weight:800; color:var(--a2); overflow:hidden;
+}
+.club-logo-lg img { width:100%; height:100%; object-fit:cover; border-radius:11px; }
+.club-meta-chips { display:flex; gap:8px; flex-wrap:wrap; }
+
+.members-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+@media(max-width:700px){ .members-grid{grid-template-columns:repeat(2,1fr);} }
+.member-chip {
+  display:flex; align-items:center; gap:8px; padding:10px 12px;
+  background:var(--surface2); border:1px solid var(--border); border-radius:var(--r-sm);
+}
+.member-avatar {
+  width:28px; height:28px; border-radius:50%;
+  background:var(--a-bg); display:flex; align-items:center; justify-content:center;
+  font-size:0.75rem; font-weight:700; color:var(--a2); flex-shrink:0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{% url 'club_list' %}" style="display:inline-flex;align-items:center;gap:6px;font-size:0.875rem;color:var(--txt3);margin-bottom:20px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--a2)'" onmouseout="this.style.color='var(--txt3)'">← All Clubs</a>
+
+<!-- Hero -->
+<div class="club-hero fade-up">
+  {% if club.banner %}
+  <img src="{{ club.banner.url }}" class="club-hero-banner" alt="">
+  {% else %}
+  <div class="club-hero-banner-placeholder">
+    <div class="club-hero-banner-glow"></div>
+  </div>
+  {% endif %}
+  <div class="club-hero-body">
+    <div class="club-hero-row">
+      <div class="club-logo-lg">
+        {% if club.logo %}<img src="{{ club.logo.url }}" alt="{{ club.name }}">{% else %}{{ club.name|slice:":1" }}{% endif %}
+      </div>
+      <div style="flex:1;padding-bottom:6px;">
+        <h1 style="font-size:1.625rem;margin-bottom:6px;">{{ club.name }}</h1>
+        <div class="club-meta-chips">
+          {% if club.category %}<span class="badge badge-accent">{{ club.category.name }}</span>{% endif %}
+          <span class="badge badge-gray">⊛ {{ club.get_member_count }} members</span>
+          {% if club.established_date %}<span class="badge badge-gray">Est. {{ club.established_date|date:"Y" }}</span>{% endif %}
+          <span class="badge badge-green">✦ Active</span>
+        </div>
+      </div>
+      <div>
+        {% if user.is_authenticated and user.user_type == 'student' %}
+          {% if is_member %}
+            <span class="badge badge-green" style="padding:8px 14px;font-size:0.8rem;">✓ Member</span>
+          {% elif has_pending_request %}
+            <span class="badge badge-yellow" style="padding:8px 14px;font-size:0.8rem;"> Request Pending</span>
+          {% else %}
+            <a href="{% url 'join_club' club.slug %}" class="btn btn-primary">Join Club →</a>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+    {% if club.description %}
+    <p style="color:var(--txt2);font-size:0.9375rem;line-height:1.7;max-width:760px;">{{ club.description }}</p>
+    {% endif %}
+    {% if club.email or club.phone or club.website %}
+    <div style="display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;">
+      {% if club.email %}<span style="font-size:0.8125rem;color:var(--txt3);">✉️ {{ club.email }}</span>{% endif %}
+      {% if club.phone %}<span style="font-size:0.8125rem;color:var(--txt3);"> {{ club.phone }}</span>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 340px;gap:22px;align-items:start;">
+  <div>
+    <!-- Events -->
+    <div class="card fade-up-2" style="margin-bottom:20px;">
+      <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--txt3);margin-bottom:18px;">◇ Upcoming Events</div>
+      {% for event in events %}
+      <a href="{% url 'event_detail' event.slug %}" style="display:block;padding:14px 0;border-bottom:1px solid var(--border);text-decoration:none;transition:all 0.2s;" onmouseover="this.style.paddingLeft='8px'" onmouseout="this.style.paddingLeft='0'">
+        <div style="font-size:0.9rem;font-weight:600;color:var(--txt);margin-bottom:4px;">{{ event.title }}</div>
+        <div style="font-size:0.8rem;color:var(--txt3);"> {{ event.start_date|date:"M d, Y · g:i A" }}{% if event.venue %} ·  {{ event.venue }}{% endif %}</div>
+      </a>
+      {% empty %}
+      <div style="color:var(--txt3);font-size:0.875rem;padding:8px 0;">No upcoming events.</div>
+      {% endfor %}
+    </div>
+
+    <!-- Members -->
+    {% if members %}
+    <div class="card fade-up-3">
+      <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--txt3);margin-bottom:16px;">⊛ Members</div>
+      <div class="members-grid">
+        {% for m in members %}
+        <div class="member-chip">
+          <div class="member-avatar">{{ m.user.username|slice:":1"|upper }}</div>
+          <div style="min-width:0;">
+            <div style="font-size:0.8rem;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ m.user.get_full_name|default:m.user.username|truncatechars:12 }}</div>
+            <div style="font-size:0.7rem;color:var(--txt3);">{{ m.role|title }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Sidebar info -->
+  <div class="fade-up-2">
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--txt3);margin-bottom:14px;">Club Info</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        {% if club.president %}
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8125rem;">
+          <span style="color:var(--txt3);">President</span>
+          <span style="color:var(--txt);font-weight:600;">{{ club.president.get_full_name|default:club.president.username }}</span>
+        </div>
+        {% endif %}
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8125rem;">
+          <span style="color:var(--txt3);">Members</span>
+          <span style="color:var(--txt);font-weight:600;">{{ club.get_member_count }}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8125rem;">
+          <span style="color:var(--txt3);">Total Events</span>
+          <span style="color:var(--txt);font-weight:600;">{{ events.count }}</span>
+        </div>
+        {% if club.established_date %}
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8125rem;">
+          <span style="color:var(--txt3);">Founded</span>
+          <span style="color:var(--txt);font-weight:600;">{{ club.established_date|date:"Y" }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% if user.is_authenticated and user.user_type == 'student' and not is_member and not has_pending_request %}
+    <a href="{% url 'join_club' club.slug %}" class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;">Join {{ club.name }} →</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

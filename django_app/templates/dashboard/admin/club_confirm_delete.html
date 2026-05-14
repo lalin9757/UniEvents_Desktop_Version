@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Delete Club{% endblock %}
+{% block page_title %}Delete Club{% endblock %}
+{% block app_content %}
+<div style="max-width:500px;margin:0 auto">
+  <div class="card fade-up" style="border-color:var(--red-b)">
+    <div style="font-size:2.5rem;margin-bottom:16px">!️</div>
+    <h2 style="font-size:1.125rem;margin-bottom:8px;color:var(--red)">Delete "{{ club.name }}"?</h2>
+    <p style="color:var(--txt2);font-size:0.9rem;margin-bottom:24px;line-height:1.6">
+      This will permanently delete the club along with all its members, events, and registrations. <strong style="color:var(--red)">This cannot be undone.</strong>
+    </p>
+    <form method="post" style="display:flex;gap:10px">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger btn-lg">Yes, Delete Club</button>
+      <a href="{% url 'admin_club_list' %}" class="btn btn-ghost btn-lg">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

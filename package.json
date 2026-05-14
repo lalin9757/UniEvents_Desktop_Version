@@ -1,0 +1,55 @@
+{
+  "name": "uni-events-management",
+  "version": "1.0.0",
+  "description": "University Club & Event Management System - Desktop App",
+  "main": "electron/main.js",
+  "author": "Your University",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --win --mac --linux"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "com.university.events-management",
+    "productName": "Uni Events Management",
+    "copyright": "Copyright © 2026",
+    "directories": {
+      "output": "dist"
+    },
+    "extraResources": [
+      {
+        "from": "../django_app",
+        "to": "django_app",
+        "filter": ["**/*", "!**/__pycache__/**", "!**/*.pyc", "!.git/**"]
+      }
+    ],
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "electron/icon.ico"
+    },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "icon": "electron/icon.icns"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "electron/icon.png",
+      "category": "Education"
+    },
+    "nsis": {
+      "installerIcon": "electron/icon.ico",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}

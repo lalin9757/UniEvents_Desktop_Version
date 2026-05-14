@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}Sign In — UniEvents{% endblock %}
+
+{% block extra_css %}
+<style>
+.auth-wrap{min-height:100vh;display:flex;background:var(--bg)}
+.auth-left{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 28px}
+.auth-right{
+  width:42%;background:var(--surface);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:60px 48px;position:relative;overflow:hidden;
+}
+@media(max-width:800px){.auth-right{display:none}}
+.auth-right::before{
+  content:'';position:absolute;width:450px;height:450px;border-radius:50%;
+  background:radial-gradient(circle,var(--a) 0%,transparent 70%);
+  opacity:0.08;top:-120px;right:-120px;pointer-events:none;
+}
+.auth-right::after{
+  content:'';position:absolute;width:300px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,#3B82F6 0%,transparent 70%);
+  opacity:0.05;bottom:-60px;left:-60px;pointer-events:none;
+}
+.auth-form-wrap{width:100%;max-width:400px}
+.auth-logo{font-family:'Bricolage Grotesque',sans-serif;font-size:1.5rem;font-weight:800;color:var(--a2);margin-bottom:32px;display:flex;align-items:center;gap:10px}
+.auth-logo span{color:var(--txt)}
+.auth-logo-icon{width:32px;height:32px;border-radius:8px;background:var(--a-bg);border:1px solid var(--a-border);display:flex;align-items:center;justify-content:center;font-size:1rem}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:34px;box-shadow:var(--sh-lg)}
+.auth-footer{text-align:center;margin-top:20px;font-size:0.875rem;color:var(--txt2)}
+.auth-footer a{color:var(--a2);font-weight:600}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap" style="margin:-36px -32px;min-height:calc(100vh - 66px)">
+  <div class="auth-left">
+    <div class="auth-form-wrap fade-up">
+      <div class="auth-logo">
+        <div class="auth-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--a2)"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+        Uni<span>Events</span>
+      </div>
+
+      <div style="margin-bottom:28px">
+        <h1 style="font-size:1.75rem;font-weight:800;margin-bottom:6px">Welcome back 👋</h1>
+        <p style="color:var(--txt2);font-size:0.9125rem">Sign in to access your dashboard</p>
+      </div>
+
+      <div class="auth-card">
+        <form method="post" autocomplete="on">
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" name="username" placeholder="Enter your username" autofocus required>
+          </div>
+
+          <div class="form-group" style="margin-bottom:22px">
+            <label>Password</label>
+            <input type="password" name="password" placeholder="Enter your password" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block btn-lg">
+            Sign In →
+          </button>
+        </form>
+      </div>
+
+      <div class="auth-footer">
+        Don't have an account?
+        <a href="{% url 'register' %}">Create one free</a>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div style="position:relative;z-index:1;width:100%;max-width:320px">
+      <div style="font-size:2.8rem;margin-bottom:20px">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--a2)"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      </div>
+
+      <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:12px">
+        Your campus,<br>all in one place.
+      </h2>
+
+      <p style="color:var(--txt2);font-size:0.9rem;line-height:1.75;margin-bottom:36px">
+        Discover clubs, attend events, and stay connected with everything happening on campus.
+      </p>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:12px;font-size:0.875rem;color:var(--txt2)">
+          <span style="font-size:1.1rem;color:var(--a2)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          </span> Register for events instantly
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;font-size:0.875rem;color:var(--txt2)">
+          <span style="font-size:1.1rem;color:var(--a2)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          </span> Join clubs with one click
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;font-size:0.875rem;color:var(--txt2)">
+          <span style="font-size:1.1rem;color:var(--a2)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          </span> Get real-time announcements
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;font-size:0.875rem;color:var(--txt2)">
+          <span style="font-size:1.1rem;color:var(--a2)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </span> Track all your activities
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

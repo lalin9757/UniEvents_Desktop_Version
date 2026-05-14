@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}My Events{% endblock %}
+{% block page_title %}My Events{% endblock %}
+{% block topbar_actions %}
+  <a href="{% url 'president_event_create' %}" class="btn btn-primary btn-sm">+ Submit Event</a>
+{% endblock %}
+{% block app_content %}
+{% for event in events %}
+<div class="card fade-up" style="margin-bottom:14px;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;">
+    <div style="flex:1;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="font-size:1rem;font-weight:700;color:var(--txt);">{{ event.title }}</span>
+        {% if event.request %}
+          {% if event.request.request_type == 'delete' and event.request.status == 'pending' %}
+            <span class="badge badge-red">✕ Delete Pending</span>
+          {% elif event.request.status == 'pending' %}
+            <span class="badge badge-yellow"> Awaiting Approval</span>
+          {% elif event.request.status == 'approved' %}
+            <span class="badge badge-green">✅ Published</span>
+          {% else %}
+            <span class="badge badge-red">❌ Rejected</span>
+          {% endif %}
+        {% else %}
+          <span class="badge badge-gray">Draft</span>
+        {% endif %}
+      </div>
+      <div style="font-size:0.8125rem;color:var(--txt3);">
+         {{ event.start_date|date:"M d, Y" }} ·  {{ event.venue }} · ⊛ {{ event.registration_count }} registered
+      </div>
+      {% if event.request and event.request.status == 'rejected' and event.request.admin_note %}
+      <div style="margin-top:10px;padding:10px 14px;background:var(--red-bg);border-left:3px solid var(--red);border-radius:0 6px 6px 0;font-size:0.8125rem;color:var(--red);">
+        Admin note: {{ event.request.admin_note }}
+      </div>
+      {% endif %}
+    </div>
+    <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;">
+      {% if event.status == 'published' %}
+        <a href="{% url 'president_registered_students' event.id %}" class="btn btn-ghost btn-sm">⊛ Students</a>
+        <a href="{% url 'president_announcement_create' event.id %}" class="btn btn-sm" style="background:var(--a-bg);color:var(--a2);border:1px solid rgba(124,110,248,0.2);">+ Announcement</a>
+      {% endif %}
+      {% if not event.request or event.request.request_type != 'delete' or event.request.status != 'pending' %}
+      <a href="{% url 'president_event_delete_request' event.id %}" class="btn btn-danger btn-sm">✕</a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if event.announcements.all %}
+  <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+    <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--txt3);margin-bottom:8px;">Announcements</div>
+    {% for ann in event.announcements.all|slice:":2" %}
+    <div style="font-size:0.8125rem;padding:6px 0;border-bottom:1px solid var(--border);color:var(--txt2);display:flex;justify-content:space-between;">
+      <span><strong>{{ ann.title }}</strong> — {{ ann.message|truncatewords:10 }}</span>
+      <span style="color:var(--txt3);">{{ ann.created_at|date:"M d" }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% empty %}
+<div class="card fade-up" style="text-align:center;padding:48px 24px;">
+  <div style="font-size:3rem;margin-bottom:12px;"></div>
+  <div style="font-size:1rem;font-weight:600;color:var(--txt2);">No events yet</div>
+  <a href="{% url 'president_event_create' %}" class="btn btn-primary btn-sm" style="margin-top:14px;">Submit your first event →</a>
+</div>
+{% endfor %}
+{% endblock %}

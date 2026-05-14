@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Join {{ club.name }} — UniEvents{% endblock %}
+{% block extra_css %}
+<style>
+.join-page { max-width:580px; margin:0 auto; padding:0 0 48px; }
+.tips-box {
+  background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--a);
+  border-radius:var(--r-sm); padding:14px 18px; margin-bottom:20px;
+}
+.tips-box h4 { font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--a2);margin-bottom:8px; }
+.tips-list { list-style:none; display:flex; flex-direction:column; gap:5px; }
+.tips-list li { font-size:0.8375rem;color:var(--txt2);display:flex;align-items:flex-start;gap:8px;line-height:1.5; }
+.tips-list li::before { content:'→';color:var(--a2);flex-shrink:0; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="join-page">
+  <a href="{% url 'club_detail' club.slug %}" style="display:inline-flex;align-items:center;gap:6px;font-size:0.875rem;color:var(--txt3);margin-bottom:24px;text-decoration:none;">← Back to {{ club.name }}</a>
+
+  <!-- Club banner -->
+  <div class="card" style="margin-bottom:20px;display:flex;align-items:center;gap:16px;">
+    <div style="width:56px;height:56px;border-radius:12px;background:var(--a-bg);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:800;color:var(--a2);flex-shrink:0;overflow:hidden;">
+      {% if club.logo %}<img src="{{ club.logo.url }}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">{% else %}{{ club.name|slice:":1" }}{% endif %}
+    </div>
+    <div>
+      <div style="font-size:1rem;font-weight:700;color:var(--txt);">{{ club.name }}</div>
+      <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
+        {% if club.category %}<span class="badge badge-accent">{{ club.category.name }}</span>{% endif %}
+        <span class="badge badge-gray">⊛ {{ club.get_member_count }} members</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tips -->
+  <div class="tips-box fade-up">
+    <h4> Tips for a strong application</h4>
+    <ul class="tips-list">
+      <li>Clearly explain why you are interested in this club</li>
+      <li>Mention any relevant skills or past experience</li>
+      <li>Describe what you can contribute to the club</li>
+      <li>Share your goals or expectations from joining</li>
+    </ul>
+  </div>
+
+  <!-- Form -->
+  <div class="card fade-up">
+    <h3 style="font-size:1rem;font-weight:800;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"> Join Request Form</h3>
+    <form method="post" autocomplete="off">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>Why do you want to join this club? <span style="color:var(--red)">*</span></label>
+        <textarea name="reason" placeholder="Example: I want to join because I love programming and have experience building web projects. I would love to contribute to the club's hackathons..." required style="min-height:140px;">{{ form.reason.value|default:'' }}</textarea>
+        {% if form.reason.errors %}<div class="form-error">{{ form.reason.errors.0 }}</div>{% endif %}
+        <div class="form-hint">✏️ This message will be reviewed by the club president before your request is approved.</div>
+      </div>
+      {% if form.non_field_errors %}<div class="message error" style="margin-top:12px;">{{ form.non_field_errors.0 }}</div>{% endif %}
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;margin-top:6px;"> Submit Join Request</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

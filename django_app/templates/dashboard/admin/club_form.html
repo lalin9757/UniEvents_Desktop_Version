@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}{% if club %}Edit{% else %}New{% endif %} Club — Admin{% endblock %}
+{% block page_title %}{% if club %}Edit Club{% else %}Create Club{% endif %}{% endblock %}
+{% block topbar_actions %}
+  <a href="{% url 'admin_club_list' %}" class="btn btn-ghost btn-sm">← Back to Clubs</a>
+{% endblock %}
+
+{% block app_content %}
+<div style="max-width:680px;margin:0 auto">
+  <div class="card fade-up">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="form-section">Basic Info</div>
+      <div class="form-group">
+        <label>Club Name <span style="color:var(--red)">*</span></label>
+        <input type="text" name="name" value="{{ club.name|default:'' }}" required placeholder="e.g. Computer Programming Club">
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select name="category">
+          <option value="">— No Category —</option>
+          {% for cat in categories %}
+          <option value="{{ cat.id }}" {% if club and club.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Short Description</label>
+        <input type="text" name="short_description" value="{{ club.short_description|default:'' }}" placeholder="Brief one-line description" maxlength="200">
+      </div>
+      <div class="form-group">
+        <label>Full Description <span style="color:var(--red)">*</span></label>
+        <textarea name="description" rows="5" required placeholder="Detailed description of the club's mission, activities, and goals...">{{ club.description|default:'' }}</textarea>
+      </div>
+
+      <div class="form-section">Assignment</div>
+      <div class="field-row">
+        <div class="form-group">
+          <label>President <span style="color:var(--red)">*</span></label>
+          <select name="president" required>
+            <option value="">— Select President —</option>
+            {% for p in presidents %}
+            <option value="{{ p.id }}" {% if club and club.president_id == p.id %}selected{% endif %}>
+              {{ p.get_full_name|default:p.username }} ({{ p.username }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status">
+            <option value="active" {% if not club or club.status == 'active' %}selected{% endif %}>✅ Active</option>
+            <option value="inactive" {% if club and club.status == 'inactive' %}selected{% endif %}>⏸ Inactive</option>
+            <option value="pending" {% if club and club.status == 'pending' %}selected{% endif %}> Pending</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Contact Email</label>
+        <input type="email" name="email" value="{{ club.email|default:'' }}" placeholder="club@university.edu">
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button type="submit" class="btn btn-primary btn-lg">
+          {% if club %} Save Changes{% else %} Create Club{% endif %}
+        </button>
+        <a href="{% url 'admin_club_list' %}" class="btn btn-ghost btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Join Requests{% endblock %}
+{% block page_title %}Join Requests{% endblock %}
+{% block topbar_actions %}
+  <span style="font-size:0.8125rem;color:var(--txt3);">{{ club.name }}</span>
+{% endblock %}
+
+{% block app_content %}
+{% if pending_members %}
+<div style="margin-bottom:16px;">
+  <span style="font-size:0.8125rem;color:var(--txt3);">{{ pending_members|length }} pending request{{ pending_members|length|pluralize }}</span>
+</div>
+{% endif %}
+
+{% for req in pending_members %}
+<div class="card fade-up" style="margin-bottom:14px;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;">
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--a-bg);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:0.9rem;font-weight:700;color:var(--a2);flex-shrink:0;">{{ req.user.username|slice:":1"|upper }}</div>
+        <div>
+          <span style="font-size:0.9375rem;font-weight:700;color:var(--txt);">{{ req.user.get_full_name|default:req.user.username }}</span>
+          <span class="badge badge-yellow" style="margin-left:8px;"> Pending</span>
+        </div>
+      </div>
+      <div style="font-size:0.8125rem;color:var(--txt3);margin-bottom:10px;">
+        @{{ req.user.username }}
+        {% if req.user.department %} · {{ req.user.department }}{% endif %}
+        {% if req.user.intake %} · Intake {{ req.user.intake }}{% endif %}
+        {% if req.user.student_id %} · ID: {{ req.user.student_id }}{% endif %}
+        <span style="margin-left:8px;">— Requested {{ req.joined_date|date:"M d, Y" }}</span>
+      </div>
+      {% if req.additional_info %}
+      <div style="padding:12px 14px;background:var(--surface2);border-radius:var(--r-sm);border-left:3px solid var(--a);font-size:0.875rem;color:var(--txt2);line-height:1.6;">
+        <span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--txt3);display:block;margin-bottom:6px;"> Reason for Joining</span>
+        {{ req.additional_info }}
+      </div>
+      {% endif %}
+    </div>
+    <div style="display:flex;gap:8px;flex-shrink:0;">
+      <form method="post" style="display:inline;">
+        {% csrf_token %}
+        <input type="hidden" name="member_id" value="{{ req.id }}">
+        <input type="hidden" name="action" value="approve">
+        <button type="submit" class="btn btn-sm" style="background:var(--green-bg);color:var(--green);border:1px solid rgba(52,211,153,0.3);">✓ Approve</button>
+      </form>
+      <form method="post" style="display:inline;">
+        {% csrf_token %}
+        <input type="hidden" name="member_id" value="{{ req.id }}">
+        <input type="hidden" name="action" value="reject">
+        <button type="submit" class="btn btn-danger btn-sm">✗ Reject</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% empty %}
+<div class="card fade-up" style="text-align:center;padding:48px 24px;">
+  <div style="font-size:3rem;margin-bottom:12px;"></div>
+  <div style="font-size:1rem;font-weight:600;color:var(--txt2);">No pending join requests</div>
+  <div style="font-size:0.875rem;color:var(--txt3);margin-top:6px;">All caught up! Share your club to get more members.</div>
+  <a href="{% url 'club_detail' club.slug %}" class="btn btn-ghost btn-sm" style="margin-top:16px;">View Club Page →</a>
+</div>
+{% endfor %}
+{% endblock %}

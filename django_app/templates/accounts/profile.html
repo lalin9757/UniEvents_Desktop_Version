@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}My Profile — UniEvents{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'profile_edit' %}" class="btn btn-primary btn-sm">✏️ Edit Profile</a>
+{% endblock %}
+
+{% block app_content %}
+<div style="max-width:700px;margin:0 auto;">
+  <div class="card fade-up" style="margin-bottom:20px;">
+    <div style="display:flex;align-items:center;gap:20px;margin-bottom:24px;">
+      <div style="width:72px;height:72px;border-radius:50%;background:var(--a-bg);border:2px solid var(--a);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:var(--a);flex-shrink:0;">
+        {% if user.profile_picture %}
+          <img src="{{ user.profile_picture.url }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+        {% else %}
+          {{ user.username|slice:":1"|upper }}
+        {% endif %}
+      </div>
+      <div>
+        <h2 style="margin-bottom:4px;">{{ user.get_full_name|default:user.username }}</h2>
+        <div style="color:var(--txt2);font-size:0.9rem;">@{{ user.username }}</div>
+        <span class="badge badge-accent" style="margin-top:6px;">{{ user.get_user_type_display }}</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <div style="font-size:0.75rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">Email</div>
+        <div style="font-size:0.9rem;">{{ user.email|default:"—" }}</div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">Phone</div>
+        <div style="font-size:0.9rem;">{{ user.phone|default:"—" }}</div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">Department</div>
+        <div style="font-size:0.9rem;">{{ user.department|default:"—" }}</div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">Student ID</div>
+        <div style="font-size:0.9rem;">{{ user.student_id|default:"—" }}</div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">Intake</div>
+        <div style="font-size:0.9rem;">{{ user.intake|default:"—" }}</div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">Year</div>
+        <div style="font-size:0.9rem;">{{ user.year|default:"—" }}</div>
+      </div>
+    </div>
+
+    {% if user.bio %}
+    <div class="divider"></div>
+    <div>
+      <div style="font-size:0.75rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Bio</div>
+      <div style="font-size:0.9rem;color:var(--txt2);line-height:1.6;">{{ user.bio }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Club Memberships -->
+  {% with memberships=user.club_memberships.all %}
+  {% if memberships %}
+  <div class="card fade-up-2">
+    <h3 style="margin-bottom:16px;font-size:1rem;">◈ Club Memberships</h3>
+    {% for m in memberships %}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-weight:600;font-size:0.9rem;">{{ m.club.name }}</div>
+        <div style="font-size:0.78rem;color:var(--txt3);">{{ m.get_role_display }}</div>
+      </div>
+      <span class="badge {% if m.status == 'active' %}badge-green{% elif m.status == 'pending' %}badge-yellow{% else %}badge-gray{% endif %}">
+        {{ m.get_status_display }}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+</div>
+{% endblock %}

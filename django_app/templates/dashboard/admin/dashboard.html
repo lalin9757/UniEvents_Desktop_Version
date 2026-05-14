@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard — UniEvents{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block topbar_actions %}
+  <a href="{% url 'admin_club_create' %}" class="btn btn-primary btn-sm">+ New Club</a>
+  <a href="{% url 'admin_president_create' %}" class="btn btn-ghost btn-sm">+ New President</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:28px}
+@media(max-width:1100px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:580px){.stat-grid{grid-template-columns:1fr}}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+</style>
+{% endblock %}
+
+{% block app_content %}
+<!-- Stat Cards -->
+<div class="stat-grid fade-up">
+  <div class="stat-card">
+    <div class="stat-glow" style="background:#6366F1"></div>
+    <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+    <div class="stat-value" style="color:var(--a2)">{{ total_clubs }}</div>
+    <div class="stat-label">Total Clubs</div>
+    {% if pending_clubs > 0 %}<div class="stat-sub" style="color:var(--yellow)">{{ pending_clubs }} pending approval</div>{% endif %}
+  </div>
+  <div class="stat-card">
+    <div class="stat-glow" style="background:#3B82F6"></div>
+    <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+    <div class="stat-value" style="color:var(--blue)">{{ total_users }}</div>
+    <div class="stat-label">Total Users</div>
+    <div class="stat-sub">{{ total_students }} students · {{ total_presidents }} presidents</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-glow" style="background:#A855F7"></div>
+    <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+    <div class="stat-value" style="color:var(--purple)">{{ total_events }}</div>
+    <div class="stat-label">Total Events</div>
+    <div class="stat-sub">{{ weekly_events }} this week</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-glow" style="background:#F59E0B"></div>
+    <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
+    <div class="stat-value" style="color:var(--yellow)">{{ pending_event_requests }}</div>
+    <div class="stat-label">Pending Requests</div>
+    <a href="{% url 'admin_event_requests' %}" style="font-size:0.75rem;color:var(--a2);margin-top:6px;display:inline-block;position:relative;z-index:1">Review all →</a>
+  </div>
+</div>
+
+<div class="two-col">
+  <!-- Pending Event Requests -->
+  <div class="card fade-up-2">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="font-size:0.875rem;font-weight:700;color:var(--txt)">Pending Requests</div>
+        <div style="font-size:0.75rem;color:var(--txt3);margin-top:2px">Awaiting your review</div>
+      </div>
+      <a href="{% url 'admin_event_requests' %}" class="btn btn-ghost btn-sm">View all</a>
+    </div>
+    {% for req in pending_requests %}
+    <div style="padding:13px 0;border-bottom:1px solid var(--border);{% if forloop.last %}border-bottom:none{% endif %}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:0.875rem;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            {% if req.request_type == "delete" %}<span style="color:var(--red)">✕ </span>{% else %}↑ {% endif %}{{ req.event.title }}
+          </div>
+          <div style="font-size:0.78rem;color:var(--txt3);margin-top:3px">
+            {{ req.event.club.name }} · {{ req.requested_at|date:"M d" }}
+            {% if req.request_type == 'delete' %}<span class="badge badge-red" style="margin-left:6px">Delete</span>{% endif %}
+          </div>
+        </div>
+        <form method="post" action="{% url 'admin_event_request_action' req.id %}" style="display:flex;gap:5px;flex-shrink:0">
+          {% csrf_token %}
+          <button name="action" value="approve" class="btn btn-sm btn-success" style="padding:5px 11px;font-size:0.75rem">✓</button>
+          <button name="action" value="reject" class="btn btn-sm btn-danger" style="padding:5px 11px;font-size:0.75rem">✗</button>
+        </form>
+      </div>
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:28px 0;color:var(--txt3)">
+      <div style="font-size:2rem;margin-bottom:8px">✓</div>
+      <div style="font-size:0.875rem">All caught up!</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Recent Registrations -->
+  <div class="card fade-up-2">
+    <div style="margin-bottom:20px">
+      <div style="font-size:0.875rem;font-weight:700;color:var(--txt)">Recent Registrations</div>
+      <div style="font-size:0.75rem;color:var(--txt3);margin-top:2px">Latest student sign-ups</div>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr><th>Student</th><th>Event</th><th>Date</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for reg in recent_registrations %}
+        <tr>
+          <td style="font-weight:600;color:var(--txt)">{{ reg.user.get_full_name|default:reg.user.username|truncatechars:14 }}</td>
+          <td>{{ reg.event.title|truncatechars:18 }}</td>
+          <td style="font-size:0.8rem;color:var(--txt3)">{{ reg.registration_date|date:"M d" }}</td>
+          <td><span class="badge {% if reg.status == 'registered' %}badge-green{% else %}badge-gray{% endif %}">{{ reg.get_status_display }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="text-align:center;color:var(--txt3);padding:24px 0">No registrations yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Quick Links -->
+<div class="grid-4 fade-up-3" style="margin-top:22px">
+  <a href="{% url 'admin_club_list' %}" class="card card-hover" style="text-decoration:none;text-align:center;padding:20px">
+    <div style="margin-bottom:12px"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--a2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+    <div style="font-size:0.875rem;font-weight:600;color:var(--txt)">Manage Clubs</div>
+    <div style="font-size:0.75rem;color:var(--txt3);margin-top:3px">{{ total_clubs }} total</div>
+  </a>
+  <a href="{% url 'admin_president_list' %}" class="card card-hover" style="text-decoration:none;text-align:center;padding:20px">
+    <div style="margin-bottom:12px"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--a2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0114 0"/><path d="M8 7l-2-3M16 7l2-3M12 4V2"/></svg></div>
+    <div style="font-size:0.875rem;font-weight:600;color:var(--txt)">Presidents</div>
+    <div style="font-size:0.75rem;color:var(--txt3);margin-top:3px">{{ total_presidents }} accounts</div>
+  </a>
+  <a href="{% url 'admin_event_requests' %}" class="card card-hover" style="text-decoration:none;text-align:center;padding:20px">
+    <div style="margin-bottom:12px"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--a2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+    <div style="font-size:0.875rem;font-weight:600;color:var(--txt)">Event Requests</div>
+    <div style="font-size:0.75rem;color:var(--txt3);margin-top:3px">{{ pending_event_requests }} pending</div>
+  </a>
+  <a href="{% url 'admin_statistics' %}" class="card card-hover" style="text-decoration:none;text-align:center;padding:20px">
+    <div style="margin-bottom:12px"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--a2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+    <div style="font-size:0.875rem;font-weight:600;color:var(--txt)">Statistics</div>
+    <div style="font-size:0.75rem;color:var(--txt3);margin-top:3px">Platform overview</div>
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+{% block title %}{{ event.title }} — UniEvents{% endblock %}
+{% block extra_css %}
+<style>
+.event-hero {
+  background:linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+  border:1px solid var(--border); border-radius:var(--r);
+  margin-bottom:24px; overflow:hidden; position:relative;
+}
+.event-hero-banner { width:100%; height:220px; object-fit:cover; display:block; }
+.event-hero-banner-placeholder {
+  height:200px;
+  background:linear-gradient(135deg, var(--bg2) 0%, #111520 100%);
+  position:relative; overflow:hidden;
+}
+.event-hero-glow { position:absolute; width:400px; height:400px; border-radius:50%; background:var(--a); filter:blur(120px); opacity:0.07; top:-100px; right:0; }
+.event-hero-body { padding:24px 28px; }
+
+.ann-card {
+  border-left:3px solid var(--border2); padding:12px 16px; margin-bottom:10px;
+  background:var(--surface2); border-radius:0 var(--r-sm) var(--r-sm) 0;
+}
+.ann-general     { border-color:var(--a); }
+.ann-venue_change{ border-color:var(--yellow); }
+.ann-time_change { border-color:var(--blue); }
+.ann-cancellation{ border-color:var(--red); }
+.ann-reminder    { border-color:var(--green); }
+
+/* Modal */
+.modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px); }
+.modal-overlay.open { display:flex; }
+.modal-box { background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:32px;max-width:440px;width:90%;box-shadow:var(--sh-lg);animation:fadeUp 0.25s ease; }
+.modal-title { font-family:'Bricolage Grotesque',sans-serif;font-size:1.2rem;font-weight:800;margin-bottom:20px; }
+.modal-row { display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:0.875rem; }
+.modal-row:last-of-type { border-bottom:none; }
+.modal-row-label { color:var(--txt3); }
+.modal-row-val { color:var(--txt);font-weight:500; }
+.modal-actions { display:flex;gap:10px;margin-top:22px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{% url 'event_list' %}" style="display:inline-flex;align-items:center;gap:6px;font-size:0.875rem;color:var(--txt3);margin-bottom:20px;text-decoration:none;" onmouseover="this.style.color='var(--a2)'" onmouseout="this.style.color='var(--txt3)'">← All Events</a>
+
+<!-- Hero -->
+<div class="event-hero fade-up">
+  {% if event.banner %}
+  <img src="{{ event.banner.url }}" class="event-hero-banner" alt="">
+  {% else %}
+  <div class="event-hero-banner-placeholder"><div class="event-hero-glow"></div></div>
+  {% endif %}
+  <div class="event-hero-body">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+      {% if event.event_type %}<span class="badge badge-accent">{{ event.get_event_type_display }}</span>{% endif %}
+      {% if event.status == 'published' %}<span class="badge badge-green">✦ Open</span>{% elif event.status == 'cancelled' %}<span class="badge badge-red">Cancelled</span>{% endif %}
+      {% if event.is_free %}<span class="badge badge-green">Free</span>{% endif %}
+    </div>
+    <h1 style="font-size:1.875rem;margin-bottom:12px;">{{ event.title }}</h1>
+    <div style="display:flex;flex-wrap:wrap;gap:18px;">
+      <span style="font-size:0.875rem;color:var(--txt3);">
+        🗓 <strong style="color:var(--txt);">Starts:</strong> {{ event.start_date|date:"l, F j, Y" }} &nbsp;⏰ {{ event.start_date|date:"g:i A" }}
+      </span>
+      {% if event.end_date %}
+      <span style="font-size:0.875rem;color:var(--txt3);">
+        🏁 <strong style="color:var(--txt);">Ends:</strong> {{ event.end_date|date:"l, F j, Y" }} &nbsp;⏰ {{ event.end_date|date:"g:i A" }}
+      </span>
+      {% endif %}
+      {% if event.venue %}<span style="font-size:0.875rem;color:var(--txt3);">📍 {{ event.venue }}</span>{% endif %}
+      <span style="font-size:0.875rem;color:var(--txt3);">◈ {{ event.club.name }}</span>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 320px;gap:22px;align-items:start;">
+  <div>
+    <!-- Description -->
+    {% if event.description %}
+    <div class="card fade-up-2" style="margin-bottom:20px;">
+      <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--txt3);margin-bottom:14px;">About</div>
+      <p style="color:var(--txt2);line-height:1.75;font-size:0.9375rem;">{{ event.description|linebreaks }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Announcements -->
+    {% if announcements %}
+    <div class="card fade-up-3">
+      <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--txt3);margin-bottom:14px;"> Announcements</div>
+      {% for ann in announcements %}
+      <div class="ann-card ann-{{ ann.announcement_type }}">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span style="font-size:0.875rem;font-weight:700;color:var(--txt);">{{ ann.title }}</span>
+          <span class="badge {% if ann.announcement_type == 'cancellation' %}badge-red{% elif ann.announcement_type == 'venue_change' %}badge-yellow{% elif ann.announcement_type == 'time_change' %}badge-blue{% else %}badge-accent{% endif %}" style="font-size:0.68rem;">{{ ann.get_announcement_type_display }}</span>
+        </div>
+        <p style="font-size:0.8375rem;color:var(--txt2);line-height:1.6;margin-bottom:4px;">{{ ann.message }}</p>
+        <div style="font-size:0.75rem;color:var(--txt3);">{{ ann.created_at|date:"M d, Y · g:i A" }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Sidebar -->
+  <div class="fade-up-2">
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--txt3);margin-bottom:14px;">Registration</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+        <div style="display:flex;justify-content:space-between;font-size:0.8125rem;">
+          <span style="color:var(--txt3);">Fee</span>
+          <span style="color:var(--txt);font-weight:600;">{% if event.is_free %}Free{% else %}৳{{ event.fee }}{% endif %}</span>
+        </div>
+        {% if event.max_participants %}
+        <div style="display:flex;justify-content:space-between;font-size:0.8125rem;">
+          <span style="color:var(--txt3);">Spots</span>
+          <span style="color:var(--txt);font-weight:600;">{{ event.registration_count }} / {{ event.max_participants }}</span>
+        </div>
+        {% endif %}
+        <div style="display:flex;justify-content:space-between;font-size:0.8125rem;">
+          <span style="color:var(--txt3);">Registered</span>
+          <span style="color:var(--txt);font-weight:600;">{{ event.registration_count }}</span>
+        </div>
+        {% if event.registration_close %}
+        <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:2px;">
+          <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--txt3);margin-bottom:6px;">Registration Deadline</div>
+          {% if event.registration_close < now %}
+          <div style="display:flex;align-items:center;gap:6px;background:#fee2e2;border:1px solid #fca5a5;border-radius:var(--r-sm);padding:8px 10px;">
+            <span style="font-size:0.875rem;">🔒</span>
+            <div>
+              <div style="font-size:0.8rem;font-weight:700;color:#dc2626;">Deadline Passed</div>
+              <div style="font-size:0.75rem;color:#ef4444;">{{ event.registration_close|date:"M d, Y · g:i A" }}</div>
+            </div>
+          </div>
+          {% else %}
+          <div style="display:flex;align-items:center;gap:6px;background:#fef3c7;border:1px solid #fcd34d;border-radius:var(--r-sm);padding:8px 10px;">
+            <span style="font-size:0.875rem;">⏳</span>
+            <div>
+              <div style="font-size:0.8rem;font-weight:700;color:#92400e;">{{ event.registration_close|date:"M d, Y" }}</div>
+              <div style="font-size:0.75rem;color:#b45309;">by {{ event.registration_close|date:"g:i A" }}</div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+      {% if user.is_authenticated %}
+        {% if user.user_type == 'student' %}
+          {% if is_registered %}
+            <div style="text-align:center;padding:12px;background:var(--green-bg);border-radius:var(--r-sm);color:var(--green);font-size:0.875rem;font-weight:600;">✓ You're registered!</div>
+          {% elif event.end_date and event.end_date < now %}
+            <div style="text-align:center;padding:10px;background:var(--surface2);border-radius:var(--r-sm);color:var(--txt3);font-size:0.8rem;">⏱ This event has ended</div>
+          {% elif event.registration_close and event.registration_close < now %}
+            <div style="text-align:center;padding:10px;background:#fee2e2;border-radius:var(--r-sm);color:#dc2626;font-size:0.8rem;font-weight:600;">🔒 Registration Deadline Passed</div>
+          {% elif not event.end_date and event.start_date < now %}
+            <div style="text-align:center;padding:10px;background:var(--surface2);border-radius:var(--r-sm);color:var(--txt3);font-size:0.8rem;">⏱ This event has already started</div>
+          {% else %}
+            <button onclick="showRegModal()" class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;">Register Now →</button>
+          {% endif %}
+        {% else %}
+          <div style="text-align:center;padding:10px;background:var(--surface2);border-radius:var(--r-sm);color:var(--txt3);font-size:0.8rem;">Admins & Presidents cannot register</div>
+        {% endif %}
+      {% else %}
+        {% if event.end_date and event.end_date < now %}
+          <div style="text-align:center;padding:10px;background:var(--surface2);border-radius:var(--r-sm);color:var(--txt3);font-size:0.8rem;">⏱ This event has ended</div>
+        {% elif event.registration_close and event.registration_close < now %}
+          <div style="text-align:center;padding:10px;background:#fee2e2;border-radius:var(--r-sm);color:#dc2626;font-size:0.8rem;font-weight:600;">🔒 Registration Deadline Passed</div>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;">Login to Register →</a>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    <!-- Event details -->
+    <div class="card">
+      <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--txt3);margin-bottom:14px;">Details</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="font-size:0.8125rem;display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:var(--txt3);flex-shrink:0;">🗓</span>
+          <div>
+            <div style="color:var(--txt3);font-size:0.75rem;font-weight:700;text-transform:uppercase;margin-bottom:2px;">Starts</div>
+            <span style="color:var(--txt2);">{{ event.start_date|date:"l, F j, Y" }}<br>{{ event.start_date|date:"g:i A" }}</span>
+          </div>
+        </div>
+        {% if event.end_date %}
+        <div style="font-size:0.8125rem;display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:var(--txt3);flex-shrink:0;">🏁</span>
+          <div>
+            <div style="color:var(--txt3);font-size:0.75rem;font-weight:700;text-transform:uppercase;margin-bottom:2px;">Ends</div>
+            <span style="color:var(--txt2);">{{ event.end_date|date:"l, F j, Y" }}<br>{{ event.end_date|date:"g:i A" }}</span>
+          </div>
+        </div>
+        {% endif %}
+        {% if event.venue %}
+        <div style="font-size:0.8125rem;display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:var(--txt3);flex-shrink:0;">📍</span>
+          <span style="color:var(--txt2);">{{ event.venue }}</span>
+        </div>
+        {% endif %}
+        <div style="font-size:0.8125rem;display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:var(--txt3);flex-shrink:0;">◈</span>
+          <a href="{% url 'club_detail' event.club.slug %}" style="color:var(--a2);">{{ event.club.name }}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+{% if user.is_authenticated and user.user_type == 'student' and not is_registered %}
+<div class="modal-overlay" id="regModal" onclick="if(event.target===this)hideRegModal()">
+  <div class="modal-box">
+    <div class="modal-title">Confirm Registration</div>
+    <div class="modal-row"><span class="modal-row-label">Event</span><span class="modal-row-val" style="max-width:200px;text-align:right;">{{ event.title }}</span></div>
+    <div class="modal-row"><span class="modal-row-label">🗓 Start Date</span><span class="modal-row-val">{{ event.start_date|date:"M d, Y" }}</span></div>
+    <div class="modal-row"><span class="modal-row-label">⏰ Start Time</span><span class="modal-row-val">{{ event.start_date|date:"g:i A" }}</span></div>
+    {% if event.end_date %}
+    <div class="modal-row"><span class="modal-row-label">🏁 End Date</span><span class="modal-row-val">{{ event.end_date|date:"M d, Y" }}</span></div>
+    <div class="modal-row"><span class="modal-row-label">⏰ End Time</span><span class="modal-row-val">{{ event.end_date|date:"g:i A" }}</span></div>
+    {% endif %}
+    {% if event.venue %}<div class="modal-row"><span class="modal-row-label">📍 Venue</span><span class="modal-row-val">{{ event.venue }}</span></div>{% endif %}
+    <div class="modal-row"><span class="modal-row-label">Fee</span><span class="modal-row-val">{% if event.is_free %}Free{% else %}৳{{ event.fee }}{% endif %}</span></div>
+    <div class="modal-actions">
+      <form method="post" action="{% url 'event_register' event.slug %}" style="flex:1;">
+        {% csrf_token %}
+        <input type="hidden" name="confirmed" value="1">
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;">✓ Yes, Register</button>
+      </form>
+      <button onclick="hideRegModal()" class="btn btn-ghost" style="flex:1;justify-content:center;padding:11px;">Cancel</button>
+    </div>
+  </div>
+</div>
+<script>
+function showRegModal() { document.getElementById('regModal').classList.add('open'); }
+function hideRegModal() { document.getElementById('regModal').classList.remove('open'); }
+</script>
+{% endif %}
+{% endblock %}

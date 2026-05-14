@@ -1,0 +1,3 @@
+@echo off
+echo Starting Uni Events Management...
+npm start

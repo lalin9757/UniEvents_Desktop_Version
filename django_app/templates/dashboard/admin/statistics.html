@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Statistics — Admin{% endblock %}
+{% block page_title %}Platform Statistics{% endblock %}
+
+{% block app_content %}
+<!-- Main Stats -->
+<div class="grid-4 fade-up" style="margin-bottom:24px">
+  <div class="stat-card">
+    <div class="stat-glow" style="background:#6366F1"></div>
+    <div class="stat-icon">⊛</div>
+    <div class="stat-value" style="color:var(--a2)">{{ total_users }}</div>
+    <div class="stat-label">Total Users</div>
+    <div class="stat-sub">{{ total_students }} students · {{ total_presidents }} presidents</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-glow" style="background:#3B82F6"></div>
+    <div class="stat-icon">◈</div>
+    <div class="stat-value" style="color:var(--blue)">{{ total_clubs }}</div>
+    <div class="stat-label">Total Clubs</div>
+    <div class="stat-sub">{{ active_clubs }} active</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-glow" style="background:#A855F7"></div>
+    <div class="stat-icon">◇</div>
+    <div class="stat-value" style="color:var(--purple)">{{ total_events }}</div>
+    <div class="stat-label">Total Events</div>
+    <div class="stat-sub">{{ published_events }} published</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-glow" style="background:#10B981"></div>
+    <div class="stat-icon">≡</div>
+    <div class="stat-value" style="color:var(--green)">{{ total_registrations }}</div>
+    <div class="stat-label">Registrations</div>
+    <div class="stat-sub">{{ pending_event_requests }} requests pending</div>
+  </div>
+</div>
+
+<div class="grid-2 fade-up-2">
+  <!-- Top Clubs by Members -->
+  <div class="card">
+    <div style="font-size:0.875rem;font-weight:700;color:var(--txt);margin-bottom:18px"> Top Clubs by Members</div>
+    {% for club in top_clubs %}
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:0.875rem">
+        <span style="color:var(--txt);font-weight:500">{{ club.name|truncatechars:22 }}</span>
+        <span style="color:var(--txt2);font-weight:600">{{ club.member_count }}</span>
+      </div>
+      <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
+        {% with top_clubs.0.member_count as max_count %}
+        <div style="height:100%;width:{% if max_count > 0 %}{% widthratio club.member_count max_count 100 %}%{% else %}0%{% endif %};background:linear-gradient(90deg,var(--a),var(--a2));border-radius:3px;transition:width 0.8s ease"></div>
+        {% endwith %}
+      </div>
+    </div>
+    {% empty %}
+    <div style="color:var(--txt3);font-size:0.875rem;text-align:center;padding:20px 0">No data yet</div>
+    {% endfor %}
+  </div>
+
+  <!-- Top Events by Registrations -->
+  <div class="card">
+    <div style="font-size:0.875rem;font-weight:700;color:var(--txt);margin-bottom:18px">◇ Top Events by Registrations</div>
+    {% for event in top_events %}
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:0.875rem">
+        <span style="color:var(--txt);font-weight:500">{{ event.title|truncatechars:22 }}</span>
+        <span style="color:var(--txt2);font-weight:600">{{ event.reg_count }}</span>
+      </div>
+      <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
+        {% with top_events.0.reg_count as max_count %}
+        <div style="height:100%;width:{% if max_count > 0 %}{% widthratio event.reg_count max_count 100 %}%{% else %}0%{% endif %};background:linear-gradient(90deg,var(--green),#34D399);border-radius:3px"></div>
+        {% endwith %}
+      </div>
+    </div>
+    {% empty %}
+    <div style="color:var(--txt3);font-size:0.875rem;text-align:center;padding:20px 0">No published events yet</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Request Summary -->
+<div class="grid-3 fade-up-3" style="margin-top:22px">
+  <div class="card" style="text-align:center;padding:24px">
+    <div style="font-size:2rem;margin-bottom:8px"></div>
+    <div style="font-size:1.5rem;font-weight:800;color:var(--yellow);margin-bottom:4px">{{ pending_event_requests }}</div>
+    <div style="font-size:0.8125rem;color:var(--txt3)">Pending Requests</div>
+  </div>
+  <div class="card" style="text-align:center;padding:24px">
+    <div style="font-size:2rem;margin-bottom:8px">✅</div>
+    <div style="font-size:1.5rem;font-weight:800;color:var(--green);margin-bottom:4px">{{ approved_requests }}</div>
+    <div style="font-size:0.8125rem;color:var(--txt3)">Approved Requests</div>
+  </div>
+  <div class="card" style="text-align:center;padding:24px">
+    <div style="font-size:2rem;margin-bottom:8px">❌</div>
+    <div style="font-size:1.5rem;font-weight:800;color:var(--red);margin-bottom:4px">{{ rejected_requests }}</div>
+    <div style="font-size:0.8125rem;color:var(--txt3)">Rejected Requests</div>
+  </div>
+</div>
+{% endblock %}

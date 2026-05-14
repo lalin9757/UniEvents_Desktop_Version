@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}President Dashboard{% endblock %}
+{% block page_title %}{{ club.name }}{% endblock %}
+{% block topbar_actions %}
+  <a href="{% url 'president_event_create' %}" class="btn btn-primary btn-sm">+ Submit Event</a>
+{% endblock %}
+
+{% block app_content %}
+<!-- Stats -->
+<div class="grid-4 fade-up" style="margin-bottom:22px">
+  <div class="stat-card">
+    <div class="stat-glow" style="background:#6366F1"></div>
+    <div class="stat-icon">⊛</div>
+    <div class="stat-value" style="color:var(--a2)">{{ club_members_count }}</div>
+    <div class="stat-label">Active Members</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-glow" style="background:#A855F7"></div>
+    <div class="stat-icon">◇</div>
+    <div class="stat-value" style="color:var(--purple)">{{ club_events_count }}</div>
+    <div class="stat-label">Total Events</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-glow" style="background:#F59E0B"></div>
+    <div class="stat-icon">↓</div>
+    <div class="stat-value" style="color:var(--yellow)">{{ pending_join_requests }}</div>
+    <div class="stat-label">Join Requests</div>
+    {% if pending_join_requests > 0 %}<a href="{% url 'president_join_requests' %}" style="font-size:0.75rem;color:var(--a2);margin-top:4px;display:inline-block;position:relative;z-index:1">Review →</a>{% endif %}
+  </div>
+  <div class="stat-card">
+    <div class="stat-glow" style="background:#10B981"></div>
+    <div class="stat-icon"></div>
+    <div class="stat-value" style="color:var(--green)">{{ upcoming_events|length }}</div>
+    <div class="stat-label">Upcoming Events</div>
+  </div>
+</div>
+
+<div class="grid-2 fade-up-2">
+  <!-- Upcoming Events -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div style="font-size:0.875rem;font-weight:700;color:var(--txt)">◇ Upcoming Events</div>
+      <a href="{% url 'president_event_list' %}" class="btn btn-ghost btn-sm">View all</a>
+    </div>
+    {% for event in upcoming_events %}
+    <div style="padding:11px 0;border-bottom:1px solid var(--border);{% if forloop.last %}border-bottom:none{% endif %}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:0.875rem;font-weight:600;color:var(--txt)">{{ event.title|truncatechars:28 }}</div>
+          <div style="font-size:0.78rem;color:var(--txt3);margin-top:3px"> {{ event.start_date|date:"M d, Y" }} · ⊛ {{ event.registration_count }} registered</div>
+          {% if event.venue %}<div style="font-size:0.78rem;color:var(--txt3)"> {{ event.venue }}</div>{% endif %}
+        </div>
+        <a href="{% url 'president_registered_students' event.id %}" class="btn btn-ghost btn-sm" style="flex-shrink:0">View</a>
+      </div>
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:20px 0;color:var(--txt3);font-size:0.875rem">
+      No upcoming events. <a href="{% url 'president_event_create' %}" style="color:var(--a2)">Create one →</a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Recent Members -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div style="font-size:0.875rem;font-weight:700;color:var(--txt)">⊛ Recent Members</div>
+      <a href="{% url 'president_member_list' %}" class="btn btn-ghost btn-sm">All members</a>
+    </div>
+    {% for member in recent_members %}
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);{% if forloop.last %}border-bottom:none{% endif %}">
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--a-bg);border:1px solid var(--a-border);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:var(--a2);flex-shrink:0">
+        {{ member.user.username|slice:":1"|upper }}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:0.875rem;font-weight:500;color:var(--txt)">{{ member.user.get_full_name|default:member.user.username }}</div>
+        <div style="font-size:0.75rem;color:var(--txt3)">{{ member.role|title }} · joined {{ member.joined_date|date:"M d" }}</div>
+      </div>
+      <span class="badge badge-green">Active</span>
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:20px 0;color:var(--txt3);font-size:0.875rem">No members yet.</div>
+    {% endfor %}
+  </div>
+</div>
+
+{% if pending_event_requests > 0 %}
+<div class="card fade-up-3" style="margin-top:20px;background:var(--yellow-bg);border-color:var(--yellow-b)">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span style="font-size:1.5rem"></span>
+    <div>
+      <div style="font-size:0.875rem;font-weight:700;color:var(--yellow)">{{ pending_event_requests }} event request{{ pending_event_requests|pluralize }} pending admin approval</div>
+      <div style="font-size:0.78rem;color:var(--txt2);margin-top:2px">Your submitted events are awaiting admin review before being published.</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

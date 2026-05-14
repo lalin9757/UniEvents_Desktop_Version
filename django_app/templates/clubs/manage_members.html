@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}Manage Members — {{ club.name }}{% endblock %}
+{% block page_title %}Manage Members{% endblock %}
+
+{% block app_content %}
+<div style="max-width:860px;">
+
+  <!-- Club header -->
+  <div class="card fade-up" style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+    <div style="width:48px;height:48px;border-radius:10px;background:var(--a-bg);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;color:var(--a2);flex-shrink:0;overflow:hidden;">
+      {% if club.logo %}<img src="{{ club.logo.url }}" style="width:100%;height:100%;object-fit:cover;">{% else %}{{ club.name|slice:":1" }}{% endif %}
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:1rem;font-weight:700;color:var(--txt);">{{ club.name }}</div>
+      <div style="font-size:0.8125rem;color:var(--txt3);">{{ active_members|length }} active · {{ pending_members|length }} pending</div>
+    </div>
+    <a href="{% url 'club_detail' club.slug %}" class="btn btn-ghost btn-sm">← Back to Club</a>
+  </div>
+
+  <!-- Pending Requests -->
+  {% if pending_members %}
+  <div class="card fade-up" style="margin-bottom:20px;border-color:rgba(251,191,36,0.25);">
+    <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--yellow);margin-bottom:16px;"> Pending Join Requests ({{ pending_members|length }})</div>
+    {% for member in pending_members %}
+    <div style="padding:14px 0;border-bottom:1px solid var(--border);{% if forloop.last %}border-bottom:none{% endif %}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:180px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--a-bg);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:var(--a2);flex-shrink:0;">{{ member.user.username|slice:":1"|upper }}</div>
+            <div>
+              <div style="font-size:0.875rem;font-weight:600;color:var(--txt);">{{ member.user.get_full_name|default:member.user.username }}</div>
+              <div style="font-size:0.75rem;color:var(--txt3);">@{{ member.user.username }} · {{ member.user.department|default:"—" }}</div>
+            </div>
+          </div>
+          {% if member.additional_info %}
+          <div style="background:var(--surface2);border-radius:var(--r-xs);padding:10px 12px;font-size:0.8125rem;color:var(--txt2);line-height:1.55;border-left:3px solid var(--border2);">{{ member.additional_info }}</div>
+          {% endif %}
+          <div style="font-size:0.75rem;color:var(--txt3);margin-top:6px;">Requested {{ member.joined_date|date:"M d, Y" }}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          <form method="post" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="member_id" value="{{ member.id }}">
+            <input type="hidden" name="action" value="approve">
+            <button type="submit" class="btn btn-sm" style="background:var(--green-bg);color:var(--green);border:1px solid rgba(52,211,153,0.3);">✓ Approve</button>
+          </form>
+          <form method="post" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="member_id" value="{{ member.id }}">
+            <input type="hidden" name="action" value="reject">
+            <button type="submit" class="btn btn-sm btn-danger">✗ Reject</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Active Members -->
+  <div class="card fade-up-2">
+    <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--txt3);margin-bottom:16px;">⊛ Active Members ({{ active_members|length }})</div>
+    {% if active_members %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Member</th>
+          <th>Role</th>
+          <th>Joined</th>
+          <th>Change Role</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for member in active_members %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:30px;height:30px;border-radius:50%;background:var(--a-bg);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:var(--a2);flex-shrink:0;">{{ member.user.username|slice:":1"|upper }}</div>
+              <div>
+                <div style="font-weight:600;color:var(--txt);">{{ member.user.get_full_name|default:member.user.username }}</div>
+                <div style="font-size:0.72rem;color:var(--txt3);">@{{ member.user.username }}</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge badge-accent">{{ member.get_role_display }}</span></td>
+          <td style="font-size:0.8rem;">{{ member.joined_date|date:"M d, Y" }}</td>
+          <td>
+            {% if member.role != 'president' %}
+            <form method="post" style="display:flex;gap:6px;align-items:center;">
+              {% csrf_token %}
+              <input type="hidden" name="member_id" value="{{ member.id }}">
+              <input type="hidden" name="action" value="change_role">
+              <select name="new_role" style="font-size:0.8rem;padding:5px 8px;width:auto;">
+                {% for r_val, r_label in role_choices %}
+                {% if r_val != 'president' %}
+                <option value="{{ r_val }}" {% if member.role == r_val %}selected{% endif %}>{{ r_label }}</option>
+                {% endif %}
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-sm btn-ghost">Update</button>
+            </form>
+            {% else %}
+            <span style="font-size:0.8rem;color:var(--txt3);">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if member.role != 'president' %}
+            <form method="post" onsubmit="return confirm('Remove {{ member.user.username }} from the club?');">
+              {% csrf_token %}
+              <input type="hidden" name="member_id" value="{{ member.id }}">
+              <input type="hidden" name="action" value="remove">
+              <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+            </form>
+            {% else %}
+            <span style="font-size:0.75rem;color:var(--txt3);">President</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div style="text-align:center;padding:30px 0;color:var(--txt3);">No active members yet.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
